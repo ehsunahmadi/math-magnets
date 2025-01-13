@@ -52,7 +52,7 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ isStatic, onSnap, numBl
   const renderBlocks = () => {
     const blocks = [];
     for (let i = 0; i < numBlocks; i++) {
-      blocks.push(<View key={i} style={styles.singleBlock} />);
+      blocks.push(<View key={i} style={[styles.singleBlock, isStatic ? styles.static : styles.draggable]} />);
     }
     return blocks;
   };
@@ -65,7 +65,7 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ isStatic, onSnap, numBl
 };
 
 const App: React.FC = () => {
-  const [staticBlocks, setStaticBlocks] = useState<number>(2);
+  const [staticBlocks, setStaticBlocks] = useState<number>(9);
   const [dynamicBlocks, setDynamicBlocks] = useState<number>(generateBlocks());
 
   const staticX = useSharedValue(0);
@@ -101,7 +101,7 @@ const App: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <DraggableBlock isStatic={true} numBlocks={staticBlocks} initialOffsetY={200} />
+      <DraggableBlock isStatic={true} numBlocks={staticBlocks} initialOffsetY={200}  />
       {dynamicBlocks > 0 && (
         <DraggableBlock
           isStatic={false}
@@ -132,10 +132,16 @@ const styles = StyleSheet.create({
   singleBlock: {
     width: 30,
     height: 30,
-    backgroundColor: 'blue',
     borderWidth: 1,
-    borderColor: 'white',
   },
+  static: {
+    backgroundColor: 'blue',
+    borderColor: 'green',
+  },
+  draggable: {
+    backgroundColor: 'red',
+    borderColor: 'orange',
+  }
 });
 
 export default App;
