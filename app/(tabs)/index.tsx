@@ -65,7 +65,7 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ isStatic, onSnap, numBl
 };
 
 const App: React.FC = () => {
-  const [staticBlocks, setStaticBlocks] = useState<number>(9);
+  const [staticBlocks, setStaticBlocks] = useState<number>(generateBlocks());
   const [dynamicBlocks, setDynamicBlocks] = useState<number>(generateBlocks());
 
   const staticX = useSharedValue(0);
@@ -107,7 +107,7 @@ const App: React.FC = () => {
           isStatic={false}
           onSnap={handleSnap}
           numBlocks={dynamicBlocks}
-          initialOffsetY={50}
+          initialOffsetY={0}
         />
       )}
     </View>
