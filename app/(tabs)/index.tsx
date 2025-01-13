@@ -1,74 +1,92 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const DraggableBlock = () => {
+  const [numBlocks, setNumBlocks] = useState(0); // State to hold the random number of blocks
+  const translateX = useSharedValue(0); // Tracks the x position of the whole block
+  const translateY = useSharedValue(0); // Tracks the y position of the whole block
+  const offsetX = useSharedValue(0); // Tracks the accumulated x offset
+  const offsetY = useSharedValue(0); // Tracks the accumulated y offset
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+  // Function to generate a random number of blocks (between 1 and 9)
+  const generateBlocks = () => Math.floor(Math.random() * 9) + 1;
+
+  useEffect(() => {
+    setNumBlocks(generateBlocks());
+  }, []);
+
+  const dragGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      // Update the position with the current translation
+      translateX.value = offsetX.value + event.translationX;
+      translateY.value = offsetY.value + event.translationY;
+    })
+    .onEnd(() => {
+      // Store the final position as the new offset
+      offsetX.value = translateX.value;
+      offsetY.value = translateY.value;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+    ],
+  }));
+
+  const renderBlocks = () => {
+    const blocks = [];
+    for (let i = 0; i < numBlocks; i++) {
+      blocks.push(
+        <View
+          key={i}
+          style={[
+            styles.singleBlock,
+            {
+              marginRight: (i + 1) % 3 === 0 ? 0 : 5, // Add margin for grid alignment
+              marginBottom: 5, // Add margin between rows
+            },
+          ]}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      );
+    }
+    return blocks;
+  };
+
+  return (
+    <GestureDetector gesture={dragGesture}>
+      <Animated.View style={[styles.blockContainer, animatedStyle]}>{renderBlocks()}</Animated.View>
+    </GestureDetector>
+  );
+};
+
+export default function App() {
+  return (
+    <View style={styles.container}>
+      <DraggableBlock />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: '#f5f5f5',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  blockContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap', // Ensure blocks wrap to the next row
+    width: 110, // Width of 3 blocks (including margins)
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  singleBlock: {
+    width: 30,
+    height: 30,
+    backgroundColor: 'blue',
+    borderWidth: 1,
+    borderColor: 'white',
   },
 });
