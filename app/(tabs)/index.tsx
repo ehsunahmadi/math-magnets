@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
+  SharedValue,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -10,7 +11,7 @@ import Animated, {
 
 type DraggableBlockProps = {
   isStatic: boolean;
-  onSnap?: (dynamicTranslateX: Animated.SharedValue<number>, dynamicTranslateY: Animated.SharedValue<number>) => void;
+  onSnap?: (dynamicTranslateX: SharedValue<number>, dynamicTranslateY: SharedValue<number>) => void;
   numBlocks: number;
   initialOffsetY: number;
 };
@@ -73,8 +74,8 @@ const App: React.FC = () => {
   const snapThreshold = 40; // Half a centimeter (~40 pixels on average screen DPI)
 
   const handleSnap = (
-    dynamicTranslateX: Animated.SharedValue<number>,
-    dynamicTranslateY: Animated.SharedValue<number>
+    dynamicTranslateX: SharedValue<number>,
+    dynamicTranslateY: SharedValue<number>
   ) => {
     // Calculate the edges of the snap zone based on the static block's position and size
     const staticLeftEdge = staticX.value - snapThreshold - 90;
