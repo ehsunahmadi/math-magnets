@@ -91,9 +91,6 @@ const App: React.FC = () => {
     Inter_900Black,
   });
 
-  let fontSize = 24;
-  let paddingVertical = 6;
-
   if (!fontsLoaded) {
     return null;
   }
@@ -113,7 +110,6 @@ const App: React.FC = () => {
 const Addition = () => {
   const [staticBlocks, setStaticBlocks] = useState<number>(generateBlocks());
   const [dynamicBlocks, setDynamicBlocks] = useState<number>(generateBlocks());
-  const [refreshKey, setRefreshKey] = useState(0)
 
   const staticX = useSharedValue(0);
   const staticY = useSharedValue(200);
@@ -181,15 +177,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
-    fontFamily: 'Inter_400Regular'
+    fontFamily: 'Inter_400Regular',
   },
   blockContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    // justifyContent: 'center',
     alignItems: 'center',
-    width: 120, // Adjust width for larger grids
-    height: 'auto',
   },
   singleBlock: {
     width: 30,
