@@ -115,24 +115,23 @@ const Addition = () => {
   const staticX = useSharedValue(0);
   const staticY = useSharedValue(200);
 
-  const snapThreshold = 40; // Half a centimeter (~40 pixels on average screen DPI)
+  const snapThreshold = 20;
 
   const handleSnap = (
     dynamicTranslateX: SharedValue<number>,
     dynamicTranslateY: SharedValue<number>
   ) => {
-    // Calculate the edges of the snap zone based on the static block's position and size
-    const staticLeftEdge = staticX.value - snapThreshold - (width * 4);
-    const staticRightEdge = staticX.value + (width * 4) + snapThreshold; // 120 is the width of 3 blocks
-    const staticTopEdge = staticY.value - snapThreshold - (width * 4);
-    const staticBottomEdge = staticY.value + width * staticBlocks + snapThreshold; // 30 is block height
+    const dynamicWidth = Math.abs(dynamicTranslateX.value) - (Math.min(2, dynamicBlocks/2) * width)
+    const staticWidth = staticX.value + (Math.min(2, staticBlocks/2) * width)
+    const horizontallyClose = dynamicWidth - staticWidth < snapThreshold;    
+    const staticHeight = (Math.max(Math.ceil(staticBlocks/4),1))*width
+    const dynamicHeight = (Math.max(Math.ceil(dynamicBlocks/4),1))*width
+    const isBelow = staticY.value < dynamicTranslateY.value
+    const distance = staticHeight + dynamicHeight + dynamicTranslateY.value
+    const closeFromAbove =  staticY.value - distance < snapThreshold && !isBelow
+    const closeFromBelow = isBelow && dynamicTranslateY.value - staticY.value < snapThreshold
 
-    const isWithinSnapZone =
-      dynamicTranslateX.value >= staticLeftEdge &&
-      dynamicTranslateX.value <= staticRightEdge &&
-      dynamicTranslateY.value >= staticTopEdge &&
-      dynamicTranslateY.value <= staticBottomEdge;
-
+    const isWithinSnapZone = horizontallyClose && (closeFromAbove || closeFromBelow);
     if (isWithinSnapZone) {
       dynamicTranslateX.value = withTiming(staticX.value, { duration: 200 });
       dynamicTranslateY.value = withTiming(staticY.value + staticBlocks * 30, { duration: 200 }); // Stack below the existing static blocks
