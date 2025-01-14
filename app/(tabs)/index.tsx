@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -65,8 +65,27 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ isStatic, onSnap, numBl
 };
 
 const App: React.FC = () => {
+
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  
+
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.moreButton} onPress={() => setRefreshKey(k => k +1)}>
+        Give me more!
+      </TouchableOpacity>
+     <View key={refreshKey}>
+      <Addition/>
+     </View>
+    </View>
+  );
+};
+
+const Addition = () => {
   const [staticBlocks, setStaticBlocks] = useState<number>(generateBlocks());
   const [dynamicBlocks, setDynamicBlocks] = useState<number>(generateBlocks());
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const staticX = useSharedValue(0);
   const staticY = useSharedValue(200);
@@ -101,6 +120,7 @@ const App: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.desc}>{dynamicBlocks === 0 ? staticBlocks : dynamicBlocks + " + " + staticBlocks}</Text>
       <DraggableBlock isStatic={true} numBlocks={staticBlocks} initialOffsetY={200}  />
       {dynamicBlocks > 0 && (
         <DraggableBlock
@@ -112,9 +132,21 @@ const App: React.FC = () => {
       )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
+  moreButton: {
+    borderWidth: 2,
+    borderColor: "deeppink",
+    backgroundColor: 'lightpink',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 24,
+    fontSize: 18,
+  },
+  desc: {
+    fontSize: 28
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -124,7 +156,7 @@ const styles = StyleSheet.create({
   blockContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    // justifyContent: 'center',
     alignItems: 'center',
     width: 120, // Adjust width for larger grids
     height: 'auto',
