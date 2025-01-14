@@ -29,6 +29,7 @@ type DraggableBlockProps = {
 };
 
 const generateBlocks = (): number => Math.floor(Math.random() * 9) + 1;
+const width = 30;
 
 const DraggableBlock: React.FC<DraggableBlockProps> = ({ isStatic, onSnap, numBlocks, initialOffsetY }) => {
   const translateX = useSharedValue(0);
@@ -121,10 +122,10 @@ const Addition = () => {
     dynamicTranslateY: SharedValue<number>
   ) => {
     // Calculate the edges of the snap zone based on the static block's position and size
-    const staticLeftEdge = staticX.value - snapThreshold - 90;
-    const staticRightEdge = staticX.value + 90 + snapThreshold; // 90 is the width of 3 blocks
-    const staticTopEdge = staticY.value - snapThreshold - 90;
-    const staticBottomEdge = staticY.value + 30 * staticBlocks + snapThreshold; // 30 is block height
+    const staticLeftEdge = staticX.value - snapThreshold - (width * 4);
+    const staticRightEdge = staticX.value + (width * 4) + snapThreshold; // 120 is the width of 3 blocks
+    const staticTopEdge = staticY.value - snapThreshold - (width * 4);
+    const staticBottomEdge = staticY.value + width * staticBlocks + snapThreshold; // 30 is block height
 
     const isWithinSnapZone =
       dynamicTranslateX.value >= staticLeftEdge &&
@@ -157,7 +158,6 @@ const Addition = () => {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   moreButton: {
     borderWidth: 2,
@@ -182,11 +182,14 @@ const styles = StyleSheet.create({
   blockContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    // justifyContent: 'center',
     alignItems: 'center',
+    maxWidth: width * 4,
+    height: 'auto',
   },
   singleBlock: {
-    width: 30,
-    height: 30,
+    width: width,
+    height: width,
     borderWidth: 1,
   },
   static: {
