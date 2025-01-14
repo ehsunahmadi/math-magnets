@@ -1,3 +1,15 @@
+import {
+  Inter_100Thin,
+  Inter_200ExtraLight,
+  Inter_300Light,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+  Inter_900Black,
+  useFonts,
+} from '@expo-google-fonts/inter';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -65,10 +77,26 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ isStatic, onSnap, numBl
 };
 
 const App: React.FC = () => {
-
   const [refreshKey, setRefreshKey] = useState(0)
 
-  
+  let [fontsLoaded] = useFonts({
+    Inter_100Thin,
+    Inter_200ExtraLight,
+    Inter_300Light,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+    Inter_900Black,
+  });
+
+  let fontSize = 24;
+  let paddingVertical = 6;
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -145,13 +173,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   desc: {
-    fontSize: 28
+    fontSize: 28,
+    fontFamily: 'Inter_700Bold',
   },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
+    fontFamily: 'Inter_400Regular'
   },
   blockContainer: {
     flexDirection: 'row',
