@@ -193,12 +193,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   static: {
-    backgroundColor: 'blue',
-    borderColor: 'green',
+    backgroundColor: 'mediumblue',
+    borderColor: 'darkcyan',
   },
   draggable: {
-    backgroundColor: 'red',
-    borderColor: 'orange',
+    backgroundColor: 'orangered',
+    borderColor: 'gold',
   }
 });
 
