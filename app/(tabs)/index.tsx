@@ -1,6 +1,12 @@
 import type React from 'react';
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+	StyleSheet,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
 	runOnJS,
@@ -107,8 +113,12 @@ const App: React.FC = () => {
 };
 
 const Addition = () => {
-	const [staticBlocks, setStaticBlocks] = useState<number>(generateBlocks());
-	const [dynamicBlocks, setDynamicBlocks] = useState<number>(generateBlocks());
+	const staticNumber = useMemo(() => generateBlocks(), []);
+	const dynamicNumber = useMemo(() => generateBlocks(), []);
+	const [answer, setAnswer] = useState<number>();
+	const answerInputRef = useRef<TextInput | null>(null);
+	const [staticBlocks, setStaticBlocks] = useState<number>(staticNumber);
+	const [dynamicBlocks, setDynamicBlocks] = useState<number>(dynamicNumber);
 
 	const staticX = useSharedValue(0);
 	const staticY = useSharedValue(200);
@@ -136,23 +146,51 @@ const Addition = () => {
 			horizontallyClose && (closeFromAbove || closeFromBelow);
 		if (isWithinSnapZone) {
 			dynamicTranslateX.value = withTiming(staticX.value, { duration: 200 });
-			dynamicTranslateY.value = withTiming(staticY.value + staticBlocks * 30, {
-				duration: 200,
-			}); // Stack below the existing static blocks
+			dynamicTranslateY.value = withTiming(
+				staticY.value + staticBlocks * width,
+				{
+					duration: 200,
+				}
+			); // Stack below the existing static blocks
+			runOnJS(() => {
+				setStaticBlocks((prev) => prev + dynamicBlocks);
+				setDynamicBlocks(0);
+			})();
+			answerInputRef?.current?.focus();
+		}
+	};
+
+	const answerFound = answer === staticNumber + dynamicNumber;
+
+	useEffect(() => {
+		if (answerFound) {
 			runOnJS(() => {
 				setStaticBlocks((prev) => prev + dynamicBlocks);
 				setDynamicBlocks(0);
 			})();
 		}
-	};
+	}, [answerFound, dynamicBlocks]);
+
+	useEffect(() => {
+		answerInputRef?.current?.focus();
+	}, []);
 
 	return (
 		<View style={styles.container}>
-			<Text style={styles.desc}>
-				{dynamicBlocks === 0
-					? staticBlocks
-					: `${dynamicBlocks} + ${staticBlocks}`}
-			</Text>
+			<View style={styles.questionContainer}>
+				<Text style={styles.desc}>
+					{`${staticNumber} + ${dynamicNumber} = ${answerFound ? answer : ''}`}
+				</Text>
+				{!answerFound && (
+					<TextInput
+						style={styles.answerInput}
+						onChangeText={(text) => setAnswer(Number.parseInt(text))}
+						value={answer ? String(answer) : ''}
+						keyboardType="numeric"
+						ref={answerInputRef}
+					/>
+				)}
+			</View>
 			<DraggableBlock
 				isStatic={true}
 				numBlocks={staticBlocks}
@@ -210,6 +248,20 @@ const styles = StyleSheet.create({
 	draggable: {
 		backgroundColor: 'orangered',
 		borderColor: 'gold',
+	},
+	questionContainer: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 24,
+	},
+	answerInput: {
+		borderWidth: 1,
+		borderRadius: 8,
+		padding: 8,
+		fontSize: 24,
+		marginLeft: 16,
+		width: 64,
+		textAlign: 'center',
 	},
 });
 
