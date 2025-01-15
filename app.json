@@ -1,7 +1,7 @@
 {
 	"expo": {
-		"name": "mathkids",
-		"slug": "mathkids",
+		"name": "math-magnets",
+		"slug": "math-magnets",
 		"version": "1.0.0",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
