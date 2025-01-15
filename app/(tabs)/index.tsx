@@ -26,8 +26,8 @@ type DraggableBlockProps = {
 	initialOffsetY: number;
 };
 
-const generateBlocks = (): number => Math.floor(Math.random() * 9) + 1;
-const width = 30;
+const generateBlocks = (): number => Math.floor(Math.random() * 19) + 1;
+const width = 28;
 
 const DraggableBlock: React.FC<DraggableBlockProps> = ({
 	isStatic,
@@ -96,23 +96,27 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({
 
 const App: React.FC = () => {
 	const [refreshKey, setRefreshKey] = useState(0);
+	const [success, setSuccess] = useState(false);
 
 	return (
 		<View style={styles.container}>
 			<TouchableOpacity
-				style={styles.moreButton}
-				onPress={() => setRefreshKey((k) => k + 1)}
+				style={success ? styles.success : styles.moreButton}
+				onPress={() => {
+					setRefreshKey((k) => k + 1);
+					setSuccess(false);
+				}}
 			>
 				Give me more!
 			</TouchableOpacity>
 			<View key={refreshKey}>
-				<Addition />
+				<Addition onSuccess={() => setSuccess(true)} />
 			</View>
 		</View>
 	);
 };
 
-const Addition = () => {
+const Addition = ({ onSuccess }: { onSuccess: () => void }) => {
 	const staticNumber = useMemo(() => generateBlocks(), []);
 	const dynamicNumber = useMemo(() => generateBlocks(), []);
 	const [answer, setAnswer] = useState<number>();
@@ -164,12 +168,15 @@ const Addition = () => {
 
 	useEffect(() => {
 		if (answerFound) {
-			runOnJS(() => {
-				setStaticBlocks((prev) => prev + dynamicBlocks);
-				setDynamicBlocks(0);
-			})();
+			if (dynamicBlocks !== 0) {
+				runOnJS(() => {
+					setStaticBlocks((prev) => prev + dynamicBlocks);
+					setDynamicBlocks(0);
+				})();
+			}
+			onSuccess();
 		}
-	}, [answerFound, dynamicBlocks]);
+	}, [answerFound, dynamicBlocks, onSuccess]);
 
 	useEffect(() => {
 		answerInputRef?.current?.focus();
@@ -194,7 +201,10 @@ const Addition = () => {
 			<DraggableBlock
 				isStatic={true}
 				numBlocks={staticBlocks}
-				initialOffsetY={200}
+				initialOffsetY={
+					(Math.ceil(dynamicBlocks / 8) + Math.ceil(staticBlocks / 8)) * width +
+					width * 5
+				}
 			/>
 			{dynamicBlocks > 0 && (
 				<DraggableBlock
@@ -240,6 +250,7 @@ const styles = StyleSheet.create({
 		width: width,
 		height: width,
 		borderWidth: 1,
+		borderRadius: 4,
 	},
 	static: {
 		backgroundColor: 'mediumblue',
@@ -262,6 +273,15 @@ const styles = StyleSheet.create({
 		marginLeft: 16,
 		width: 64,
 		textAlign: 'center',
+	},
+	success: {
+		borderWidth: 2,
+		borderColor: 'green',
+		backgroundColor: 'lightgreen',
+		borderRadius: 8,
+		padding: 8,
+		marginBottom: 24,
+		fontSize: 18,
 	},
 });
 
