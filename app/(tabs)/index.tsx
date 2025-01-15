@@ -1,6 +1,12 @@
 import type React from 'react';
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+	StyleSheet,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
 	runOnJS,
@@ -20,8 +26,8 @@ type DraggableBlockProps = {
 	initialOffsetY: number;
 };
 
-const generateBlocks = (): number => Math.floor(Math.random() * 9) + 1;
-const width = 30;
+const generateBlocks = (): number => Math.floor(Math.random() * 19) + 1;
+const width = 28;
 
 const DraggableBlock: React.FC<DraggableBlockProps> = ({
 	isStatic,
@@ -90,25 +96,33 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({
 
 const App: React.FC = () => {
 	const [refreshKey, setRefreshKey] = useState(0);
+	const [success, setSuccess] = useState(false);
 
 	return (
 		<View style={styles.container}>
 			<TouchableOpacity
-				style={styles.moreButton}
-				onPress={() => setRefreshKey((k) => k + 1)}
+				style={success ? styles.success : styles.moreButton}
+				onPress={() => {
+					setRefreshKey((k) => k + 1);
+					setSuccess(false);
+				}}
 			>
 				Give me more!
 			</TouchableOpacity>
 			<View key={refreshKey}>
-				<Addition />
+				<Addition onSuccess={() => setSuccess(true)} />
 			</View>
 		</View>
 	);
 };
 
-const Addition = () => {
-	const [staticBlocks, setStaticBlocks] = useState<number>(generateBlocks());
-	const [dynamicBlocks, setDynamicBlocks] = useState<number>(generateBlocks());
+const Addition = ({ onSuccess }: { onSuccess: () => void }) => {
+	const staticNumber = useMemo(() => generateBlocks(), []);
+	const dynamicNumber = useMemo(() => generateBlocks(), []);
+	const [answer, setAnswer] = useState<number>();
+	const answerInputRef = useRef<TextInput | null>(null);
+	const [staticBlocks, setStaticBlocks] = useState<number>(staticNumber);
+	const [dynamicBlocks, setDynamicBlocks] = useState<number>(dynamicNumber);
 
 	const staticX = useSharedValue(0);
 	const staticY = useSharedValue(200);
@@ -136,27 +150,61 @@ const Addition = () => {
 			horizontallyClose && (closeFromAbove || closeFromBelow);
 		if (isWithinSnapZone) {
 			dynamicTranslateX.value = withTiming(staticX.value, { duration: 200 });
-			dynamicTranslateY.value = withTiming(staticY.value + staticBlocks * 30, {
-				duration: 200,
-			}); // Stack below the existing static blocks
+			dynamicTranslateY.value = withTiming(
+				staticY.value + staticBlocks * width,
+				{
+					duration: 200,
+				}
+			); // Stack below the existing static blocks
 			runOnJS(() => {
 				setStaticBlocks((prev) => prev + dynamicBlocks);
 				setDynamicBlocks(0);
 			})();
+			answerInputRef?.current?.focus();
 		}
 	};
 
+	const answerFound = answer === staticNumber + dynamicNumber;
+
+	useEffect(() => {
+		if (answerFound) {
+			if (dynamicBlocks !== 0) {
+				runOnJS(() => {
+					setStaticBlocks((prev) => prev + dynamicBlocks);
+					setDynamicBlocks(0);
+				})();
+			}
+			onSuccess();
+		}
+	}, [answerFound, dynamicBlocks, onSuccess]);
+
+	useEffect(() => {
+		answerInputRef?.current?.focus();
+	}, []);
+
 	return (
 		<View style={styles.container}>
-			<Text style={styles.desc}>
-				{dynamicBlocks === 0
-					? staticBlocks
-					: `${dynamicBlocks} + ${staticBlocks}`}
-			</Text>
+			<View style={styles.questionContainer}>
+				<Text style={styles.desc}>
+					{`${staticNumber} + ${dynamicNumber} = ${answerFound ? answer : ''}`}
+				</Text>
+				{!answerFound && (
+					<TextInput
+						style={styles.answerInput}
+						onChangeText={(text) => setAnswer(Number.parseInt(text))}
+						value={answer ? String(answer) : ''}
+						keyboardType="numeric"
+						ref={answerInputRef}
+					/>
+				)}
+			</View>
 			<DraggableBlock
 				isStatic={true}
 				numBlocks={staticBlocks}
-				initialOffsetY={200}
+				initialOffsetY={
+					(Math.ceil(dynamicBlocks / 8) + Math.ceil(staticBlocks / 8)) * width +
+					width * 5
+				}
 			/>
 			{dynamicBlocks > 0 && (
 				<DraggableBlock
@@ -202,6 +250,7 @@ const styles = StyleSheet.create({
 		width: width,
 		height: width,
 		borderWidth: 1,
+		borderRadius: 4,
 	},
 	static: {
 		backgroundColor: 'mediumblue',
@@ -210,6 +259,29 @@ const styles = StyleSheet.create({
 	draggable: {
 		backgroundColor: 'orangered',
 		borderColor: 'gold',
+	},
+	questionContainer: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 24,
+	},
+	answerInput: {
+		borderWidth: 1,
+		borderRadius: 8,
+		padding: 8,
+		fontSize: 24,
+		marginLeft: 16,
+		width: 64,
+		textAlign: 'center',
+	},
+	success: {
+		borderWidth: 2,
+		borderColor: 'green',
+		backgroundColor: 'lightgreen',
+		borderRadius: 8,
+		padding: 8,
+		marginBottom: 24,
+		fontSize: 18,
 	},
 });
 
