@@ -1,13 +1,18 @@
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+	StatusBar,
 	StyleSheet,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+	Gesture,
+	GestureDetector,
+	GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import Animated, {
 	runOnJS,
 	type SharedValue,
@@ -15,6 +20,7 @@ import Animated, {
 	useSharedValue,
 	withTiming,
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type DraggableBlockProps = {
 	isStatic: boolean;
@@ -99,20 +105,24 @@ const App: React.FC = () => {
 	const [success, setSuccess] = useState(false);
 
 	return (
-		<View style={styles.container}>
-			<TouchableOpacity
-				style={success ? styles.success : styles.moreButton}
-				onPress={() => {
-					setRefreshKey((k) => k + 1);
-					setSuccess(false);
-				}}
-			>
-				Give me more!
-			</TouchableOpacity>
-			<View key={refreshKey}>
-				<Addition onSuccess={() => setSuccess(true)} />
+		<SafeAreaView
+			style={{ flex: 1, paddingTop: 48 + (StatusBar.currentHeight ?? 0) }}
+		>
+			<View style={styles.container}>
+				<TouchableOpacity
+					style={success ? styles.success : styles.moreButton}
+					onPress={() => {
+						setRefreshKey((k) => k + 1);
+						setSuccess(false);
+					}}
+				>
+					<Text>Give me more!</Text>
+				</TouchableOpacity>
+				<View key={refreshKey}>
+					<Addition onSuccess={() => setSuccess(true)} />
+				</View>
 			</View>
-		</View>
+		</SafeAreaView>
 	);
 };
 
@@ -183,38 +193,41 @@ const Addition = ({ onSuccess }: { onSuccess: () => void }) => {
 	}, []);
 
 	return (
-		<View style={styles.container}>
-			<View style={styles.questionContainer}>
-				<Text style={styles.desc}>
-					{`${staticNumber} + ${dynamicNumber} = ${answerFound ? answer : ''}`}
-				</Text>
-				{!answerFound && (
-					<TextInput
-						style={styles.answerInput}
-						onChangeText={(text) => setAnswer(Number.parseInt(text))}
-						value={answer ? String(answer) : ''}
-						keyboardType="numeric"
-						ref={answerInputRef}
+		<GestureHandlerRootView>
+			<View style={styles.additionContainer}>
+				<View style={styles.questionContainer}>
+					<Text style={styles.desc}>
+						{`${staticNumber} + ${dynamicNumber} = ${answerFound ? answer : ''}`}
+					</Text>
+					{!answerFound && (
+						<TextInput
+							style={styles.answerInput}
+							onChangeText={(text) => setAnswer(Number.parseInt(text))}
+							value={answer ? String(answer) : ''}
+							keyboardType="numeric"
+							ref={answerInputRef}
+						/>
+					)}
+				</View>
+				<DraggableBlock
+					isStatic={true}
+					numBlocks={staticBlocks}
+					initialOffsetY={
+						(Math.ceil(dynamicBlocks / 8) + Math.ceil(staticBlocks / 8)) *
+							width +
+						width * 5
+					}
+				/>
+				{dynamicBlocks > 0 && (
+					<DraggableBlock
+						isStatic={false}
+						onSnap={handleSnap}
+						numBlocks={dynamicBlocks}
+						initialOffsetY={0}
 					/>
 				)}
 			</View>
-			<DraggableBlock
-				isStatic={true}
-				numBlocks={staticBlocks}
-				initialOffsetY={
-					(Math.ceil(dynamicBlocks / 8) + Math.ceil(staticBlocks / 8)) * width +
-					width * 5
-				}
-			/>
-			{dynamicBlocks > 0 && (
-				<DraggableBlock
-					isStatic={false}
-					onSnap={handleSnap}
-					numBlocks={dynamicBlocks}
-					initialOffsetY={0}
-				/>
-			)}
-		</View>
+		</GestureHandlerRootView>
 	);
 };
 const styles = StyleSheet.create({
@@ -237,6 +250,10 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		backgroundColor: '#f5f5f5',
 		fontFamily: 'Inter_400Regular',
+	},
+	additionContainer: {
+		flex: 1,
+		alignItems: 'center',
 	},
 	blockContainer: {
 		flexDirection: 'row',
@@ -263,7 +280,6 @@ const styles = StyleSheet.create({
 	questionContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginBottom: 24,
 	},
 	answerInput: {
 		borderWidth: 1,

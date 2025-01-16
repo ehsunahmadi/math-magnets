@@ -15,7 +15,8 @@
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/images/adaptive-icon.png",
 				"backgroundColor": "#ffffff"
-			}
+			},
+			"package": "com.nycro.mathmagnets"
 		},
 		"web": {
 			"bundler": "metro",
@@ -36,6 +37,14 @@
 		],
 		"experiments": {
 			"typedRoutes": true
+		},
+		"extra": {
+			"router": {
+				"origin": false
+			},
+			"eas": {
+				"projectId": "6babb617-0f10-42ee-8516-7294ab312f2d"
+			}
 		}
 	}
 }
